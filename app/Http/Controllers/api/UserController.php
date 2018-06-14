@@ -131,7 +131,7 @@ class UserController extends Controller
      */
     //================= SWAGGER
 
-    public function addUser(Request $request)
+    public function addUser(Request $request, User $user)
     {
 //        print_r($request->all());
 //        die;
@@ -143,9 +143,9 @@ class UserController extends Controller
             'password',
         ]);
         $data['password'] = bcrypt($data['password']);
-        $user = User::create($data);
+        $status = $user->create($data);
 
-        return response()->json(compact('user'));
+        return response()->json(compact('status'));
     }
 
     //================= SWAGGER
@@ -165,7 +165,7 @@ class UserController extends Controller
      *         type="number",
      *         default=1,
      *     ),
-     *        *     @SWG\Parameter(
+     *     @SWG\Parameter(
      *         name="first_name",
      *         in="query",
      *         description="Your name",
@@ -212,11 +212,9 @@ class UserController extends Controller
      */
     //================= SWAGGER
 
-    public function update($id)
+    public function edit(Request $request, User $user)
     {
-        $user = User::find($id);
-
-        $data = \request()->only([
+        $data = $request->only([
             'first_name',
             'last_name',
             'age',
@@ -224,9 +222,9 @@ class UserController extends Controller
             'password',
         ]);
         $data['password'] = bcrypt($data['password']);
-        $user->update($data);
+        $status = $user->update($data);
 
-        return response()->json(compact('user'));
+        return response()->json(compact('status'));
     }
 
 
@@ -259,10 +257,8 @@ class UserController extends Controller
      */
     //================= SWAGGER
 
-    public function delete($id)
+    public function delete(User $user)
     {
-        $user = User::find($id);
-
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
