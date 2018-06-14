@@ -135,13 +135,15 @@ class UserController extends Controller
     {
 //        print_r($request->all());
 //        die;
-        $user = User::create($request->only([
-            'first_name' => 'first_name',
-            'last_name' => 'last_name',
-            'age' => 'age',
-            'email' => 'email',
-            'password' => 'password',
-        ]));
+        $data = $request->only([
+            'first_name',
+            'last_name',
+            'age',
+            'email',
+            'password',
+        ]);
+        $data['password'] = bcrypt($data['password']);
+        $user = User::create($data);
 
         return response()->json(compact('user'));
     }
@@ -214,13 +216,15 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
-        $user->update(\request()->only([
-            'first_name' => 'first_name',
-            'last_name' => 'last_name',
-            'age' => 'age',
-            'email' => 'email',
-            'password' => 'password',
-        ]));
+        $data = \request()->only([
+            'first_name',
+            'last_name',
+            'age',
+            'email',
+            'password',
+        ]);
+        $data['password'] = bcrypt($data['password']);
+        $user->update($data);
 
         return response()->json(compact('user'));
     }
