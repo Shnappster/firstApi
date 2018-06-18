@@ -300,8 +300,9 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        File::delete(storage_path('app/public/users/' . $user->file_name));
-
+        if ($user->file_name !== 'default.png') {
+            File::delete(storage_path('app/public/users/' . $user->file_name));
+        }
         $status = $user->delete();
         return response()->json(compact('status'));
     }
