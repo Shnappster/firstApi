@@ -120,8 +120,15 @@
                         "type": "string"
                     },
                     {
+                        "name": "image",
+                        "in": "formData",
+                        "description": "User's image",
+                        "required": false,
+                        "type": "file"
+                    },
+                    {
                         "name": "password",
-                        "in": "query",
+                        "in": "formData",
                         "description": "Your password",
                         "required": true,
                         "type": "string"
@@ -141,7 +148,7 @@
             }
         },
         "/api/v1/users/{id}/update": {
-            "patch": {
+            "post": {
                 "tags": [
                     "users"
                 ],
@@ -191,6 +198,13 @@
                         "description": "Your email",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "image",
+                        "in": "formData",
+                        "description": "User's image",
+                        "required": false,
+                        "type": "file"
                     },
                     {
                         "name": "password",

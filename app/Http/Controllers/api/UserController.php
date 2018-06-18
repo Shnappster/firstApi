@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ImageUploadRequest;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -108,9 +111,16 @@ class UserController extends Controller
      *         required=true,
      *         type="string",
      *     ),
+     *       @SWG\Parameter(
+     *         name="image",
+     *         in="formData",
+     *         description="User's image",
+     *         required=false,
+     *         type="file",
+     *     ),
      *     @SWG\Parameter(
      *         name="password",
-     *         in="query",
+     *         in="formData",
      *         description="Your password",
      *         required=true,
      *         type="string",
@@ -131,26 +141,34 @@ class UserController extends Controller
      */
     //================= SWAGGER
 
-    public function addUser(Request $request, User $user)
+    public function addUser(ImageUploadRequest $request)
     {
-//        print_r($request->all());
-//        die;
-        $data = $request->only([
-            'first_name',
-            'last_name',
-            'age',
-            'email',
-            'password',
+
+        $user = new User([
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'age' => $request->input('age'),
+            'email' => $request->input('email'),
+            'file_name' => $request->input('file_name'),
+            'password' => bcrypt($request->input('password')),
         ]);
-        $data['password'] = bcrypt($data['password']);
-        $status = $user->create($data);
+
+        if ($request->hasFile('image')) {
+            $img = $request->file('image');
+            $img->store(User::FOLDER);
+            $file_name = $img->hashName();
+        } else {
+            $file_name = 'default.png';
+        }
+        $user->file_name = $file_name;
+        $status = $user->save();
 
         return response()->json(compact('status'));
     }
 
     //================= SWAGGER
     /**
-     * @SWG\PATCH(
+     * @SWG\Post(
      *     path="/api/v1/users/{id}/update",
      *     summary="Update user by ID",
      *     tags={"users"},
@@ -194,6 +212,13 @@ class UserController extends Controller
      *         type="string",
      *     ),
      *     @SWG\Parameter(
+     *         name="image",
+     *         in="formData",
+     *         description="User's image",
+     *         required=false,
+     *         type="file",
+     *     ),
+     *     @SWG\Parameter(
      *         name="password",
      *         in="query",
      *         description="Your password",
@@ -212,15 +237,27 @@ class UserController extends Controller
      */
     //================= SWAGGER
 
-    public function edit(Request $request, User $user)
+    public function edit(ImageUploadRequest $request, User $user)
     {
-        $data = $request->only([
+        $data = $request->all([
             'first_name',
             'last_name',
             'age',
             'email',
+            'file_name',
             'password',
         ]);
+
+        if ($request->hasFile('image')) {
+            if ($user->file_name !== 'default.png') {
+                File::delete(storage_path('app/public/users/' . $user->file_name));
+            }
+            $img = $request->file('image');
+            $img->store(User::FOLDER);
+            $file_name = $img->hashName();
+        }
+
+        $data['file_name'] = $file_name;
         $data['password'] = bcrypt($data['password']);
         $status = $user->update($data);
 
@@ -262,6 +299,9 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
+
+        File::delete(storage_path('app/public/users/' . $user->file_name));
+
         $status = $user->delete();
         return response()->json(compact('status'));
     }

@@ -4,10 +4,13 @@ namespace App;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
     use Notifiable;
+    public const DEFAULT = 'http://127.0.0.1:8000/storage/users/default.png';
+    public const FOLDER = 'public/users/';
 
     /**
      * The attributes that are mass assignable.
@@ -15,7 +18,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'age', 'email', 'password',
+        'first_name', 'last_name', 'age', 'email', 'file_name', 'password',
     ];
 
     /**
@@ -26,4 +29,12 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    protected $appends = ['file_url'];
+
+    public function getFileUrlAttribute()
+    {
+        return env('APP_URL') . Storage::url(self::FOLDER . $this->attributes['file_name']);
+    }
+
 }
